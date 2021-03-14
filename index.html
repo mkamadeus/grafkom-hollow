@@ -1,15 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Polygon</title>
+    <title>Grafkom Hollow</title>
+    <style type="text/css">
+      .canvascontainer {
+        float: left;
+        margin: 10px;
+        pointer-events: none;
+      }
+      .centeredcanvas {
+        width: 600;
+        height: 600;
+        margin: 0px auto;
+      }
+    </style>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      attribute vec4 a_position;
+      attribute vec4 a_color;
+
+      uniform mat4 u_matrix;
+
+      varying vec4 v_color;
+
+      void main() {
+        gl_Position = u_matrix * a_position;
+
+        v_color = a_color;
+      }
+    </script>
+    <script id="fragment-shader" type="x-shader/x-fragment">
+      precision mediump float;
+
+      varying vec4 v_color;
+
+      void main() {
+        gl_FragColor = v_color;
+      }
+    </script>
+    <script id="wire-vertex-shader" type="x-shader/x-vertex">
+      attribute vec4 a_position;
+
+      uniform mat4 u_matrix;
+
+      varying vec4 v_color;
+
+      void main() {
+        gl_Position = u_matrix * a_position;
+
+      }
+    </script>
+    <script id="wire-fragment-shader" type="x-shader/x-fragment">
+      precision mediump float;
+
+      varying vec4 v_color;
+
+      void main() {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+      }
+    </script>
   </head>
-  <body>
-    <div id="app">
-      <canvas width="800" height="800"></canvas>
+  <body id="body">
+    <div style="position: relative"></div>
+    <div style="top: 60px">
+      <div>Hollow Canvas</div>
+      <div style="display: inline-block">
+        <p>x rotation</p>
+        <input id="x-rotation" type="range" min="-180" max="180" value="-135" />
+        <p>y rotation</p>
+        <input id="y-rotation" type="range" min="-180" max="180" value="45" />
+        <p>z rotation</p>
+        <input id="z-rotation" type="range" min="-180" max="180" value="0" />
+      </div>
+      <div style="display: inline-block">
+        <p>x scale</p>
+        <input
+          id="x-scale"
+          type="range"
+          min="0.2"
+          max="2"
+          value="1"
+          step="0.1"
+        />
+        <p>y scale</p>
+        <input
+          id="y-scale"
+          type="range"
+          min="0.2"
+          max="2"
+          value="1"
+          step="0.1"
+        />
+        <p>z scale</p>
+        <input
+          id="z-scale"
+          type="range"
+          min="0.2"
+          max="2"
+          value="1"
+          step="0.1"
+        />
+      </div>
+      <div style="display: inline-block">
+        <p>x translation</p>
+        <input
+          id="x-translation"
+          type="range"
+          min="-1"
+          max="1"
+          value="0"
+          step="0.1"
+        />
+        <p>y translation</p>
+        <input
+          id="y-translation"
+          type="range"
+          min="-1"
+          max="1"
+          value="0"
+          step="0.1"
+        />
+        <p>z translation</p>
+        <input
+          id="z-translation"
+          type="range"
+          min="-1"
+          max="1"
+          value="0"
+          step="0.1"
+        />
+      </div>
+      <br />
+      <canvas
+        id="c"
+        class="centeredcanvas"
+        style="border: 1px solid black"
+      ></canvas>
     </div>
-    <script type="module" src="/main.ts"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
