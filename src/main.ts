@@ -5,6 +5,7 @@ import {
   getScaleMatrix,
   getTranslationMatrix,
   getRotationMatrix,
+  getPerspectiveMatrix,
 } from "./utils/Matrix4";
 
 import BodyVertexShader from "./shaders/BodyVertexShader.glsl";
@@ -26,6 +27,8 @@ let wireNumElements: number = 0;
 
 let matrixLocation: WebGLUniformLocation | null = null;
 let wireMatrixLocation: WebGLUniformLocation | null = null;
+let projectionMatrixLocation: WebGLUniformLocation | null = null;
+let wireProjectionMatrixLocation: WebGLUniformLocation | null = null;
 
 let wireIndices = null;
 let matrix = Array(16).fill(0);
@@ -131,6 +134,10 @@ function initShaders() {
   gl.bindAttribLocation(programObject, 1, "a_color");
   gl.linkProgram(programObject);
   matrixLocation = gl.getUniformLocation(programObject, "u_matrix");
+  projectionMatrixLocation = gl.getUniformLocation(
+    programObject,
+    "u_proj_matrix"
+  );
 }
 
 /**
@@ -158,6 +165,10 @@ function initWireShaders() {
   gl.bindAttribLocation(wireProgramObject, 0, "a_position");
   gl.linkProgram(wireProgramObject);
   wireMatrixLocation = gl.getUniformLocation(wireProgramObject, "u_matrix");
+  wireProjectionMatrixLocation = gl.getUniformLocation(
+    wireProgramObject,
+    "u_proj_matrix"
+  );
 }
 
 /**
@@ -195,8 +206,13 @@ function draw() {
   gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, colorOffset);
   gl.enableVertexAttribArray(1);
 
-  // Bind transformation matrix
+  // Initiate transformation matrix
   gl.uniformMatrix4fv(matrixLocation, false, matrix);
+  gl.uniformMatrix4fv(
+    projectionMatrixLocation,
+    false,
+    getPerspectiveMatrix(90, 1, 1, 100)
+  );
 
   // Bind and draw triangles
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
@@ -217,6 +233,11 @@ function drawWire() {
 
   // Bind transformation matrix
   gl.uniformMatrix4fv(wireMatrixLocation, false, matrix);
+  gl.uniformMatrix4fv(
+    wireProjectionMatrixLocation,
+    false,
+    getPerspectiveMatrix(90, 1, 1, 100)
+  );
 
   // Retrieve buffers
   gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);

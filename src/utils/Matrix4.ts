@@ -34,9 +34,9 @@ export const getTranslationMatrix = (x: number, y: number, z: number) => {
 
 /**
  * Creates the rotation matrix for the x, y, z axis.
- * @param angleX X rotation amount in radians.
- * @param angleY Y rotation amount in radians.
- * @param angleZ Z rotation amount in radians.
+ * @param angleX X rotation amount in degrees.
+ * @param angleY Y rotation amount in degrees.
+ * @param angleZ Z rotation amount in degrees.
  * @returns The rotation matrix in flattened form
  */
 export const getRotationMatrix = (
@@ -69,4 +69,30 @@ export const getRotationMatrix = (
  */
 export const getScaleMatrix = (x: number, y: number, z: number) => {
   return [x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1];
+};
+
+/**
+ *
+ * @param fov The FOV
+ * @param aspect Aspect ratio
+ * @param near Near clipping plane
+ * @param far Far clipping
+ * @returns
+ */
+export const getPerspectiveMatrix = (
+  fov: number,
+  aspect: number,
+  near: number,
+  far: number
+) => {
+  const f = 1 / Math.tan((fov * Math.PI) / 180 / 2);
+  const d = far - near;
+
+  // prettier-ignore
+  return [
+    f/aspect, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, -(near + far) / d, -2 * near * far / d,
+    0, 0, -1, 0
+  ]
 };
