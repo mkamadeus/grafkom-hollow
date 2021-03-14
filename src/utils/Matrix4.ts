@@ -67,6 +67,6 @@ export const getRotationMatrix = (
  * @param z Scale factor in the z axis
  * @returns The scale matrix in flattened form
  */
-export const scale = (x: number, y: number, z: number) => {
+export const getScaleMatrix = (x: number, y: number, z: number) => {
   return [x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1];
 };

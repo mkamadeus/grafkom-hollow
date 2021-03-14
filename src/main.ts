@@ -2,52 +2,63 @@ import "./styles/style.css";
 import { cubeColors, cubeIndices, cubePositions } from "./models/cube";
 import {
   multiplyMatrix,
-  scale as getScaleMatrix,
+  getScaleMatrix,
   getTranslationMatrix,
   getRotationMatrix,
 } from "./utils/Matrix4";
 
-let gl = null;
-let programObject = null;
-let wireProgramObject = null;
-let vbo = null;
-let wireVbo = null;
-let elementVbo = null;
-let colorOffset = 0;
-let numElements = 0;
-let wireNumElements = 0;
-let matrixLocation = null;
-let wireMatrixLocation = null;
+import BodyVertexShader from "./shaders/BodyVertexShader.glsl";
+import BodyFragmentShader from "./shaders/BodyFragmentShader.glsl";
+import WireVertexShader from "./shaders/WireVertexShader.glsl";
+import WireFragmentShader from "./shaders/WireFragmentShader.glsl";
+
+let gl: WebGLRenderingContext | null = null;
+let programObject: WebGLProgram | null = null;
+let wireProgramObject: WebGLProgram | null = null;
+
+let vbo: WebGLBuffer | null = null;
+let wireVbo: WebGLBuffer | null = null;
+let elementVbo: WebGLBuffer | null = null;
+
+let colorOffset: number = 0;
+let numElements: number = 0;
+let wireNumElements: number = 0;
+
+let matrixLocation: WebGLUniformLocation | null = null;
+let wireMatrixLocation: WebGLUniformLocation | null = null;
+
 let wireIndices = null;
-let matrix = Array(16);
+let matrix = Array(16).fill(0);
 
 // Transformation variables
-var xRotation = 0;
-var yRotation = 0;
-var zRotation = 0;
+let xRotation = 0;
+let yRotation = 0;
+let zRotation = 0;
 
-var xScale = 1;
-var yScale = 1;
-var zScale = 1;
+let xScale = 1;
+let yScale = 1;
+let zScale = 1;
 
-var xTranslation = 0;
-var yTranslation = 0;
-var zTranslation = 0;
+let xTranslation = 0;
+let yTranslation = 0;
+let zTranslation = 0;
 
 function main() {
   const canvas = document.getElementById("c") as HTMLCanvasElement;
 
-  var ratio = window.devicePixelRatio ? window.devicePixelRatio : 1;
+  const ratio = window.devicePixelRatio ? window.devicePixelRatio : 1;
   canvas.width = 1200 * ratio;
   canvas.height = 1200 * ratio;
 
   gl = canvas.getContext("webgl");
-  if (!gl) return;
+  if (!gl) alert("Your browser/machine does not support WebGL!");
 
   init();
 }
 
 function init() {
+  gl = gl as WebGLRenderingContext;
+
   // Clear canvas
   gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -61,8 +72,15 @@ function init() {
   draw();
 }
 
+/**
+ * Insert object model to WebGL buffers.
+ */
 function initModel() {
-  vbo = gl.createBuffer();
+  gl = gl as WebGLRenderingContext;
+
+  vbo = gl.createBuffer() as WebGLBuffer;
+
+  // Store cube vertex positions and colors
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
   gl.bufferData(
     gl.ARRAY_BUFFER,
@@ -73,11 +91,13 @@ function initModel() {
   gl.bufferSubData(gl.ARRAY_BUFFER, 0, cubePositions);
   gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, cubeColors);
 
+  // Store element triangle definition
   elementVbo = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cubeIndices, gl.STATIC_DRAW);
   numElements = cubeIndices.length;
 
+  // Store wire definition
   wireIndices = createWireIndices(cubeIndices);
   wireVbo = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
@@ -85,52 +105,64 @@ function initModel() {
   wireNumElements = wireIndices.length;
 }
 
+/**
+ * Initialize body shaders.
+ */
 function initShaders() {
-  var vertexShaderSource = document.getElementById("vertex-shader").textContent;
-  var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vertexShader, vertexShaderSource);
+  gl = gl as WebGLRenderingContext;
+
+  // Initialize body vertex shader
+  const vertexShader = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
+  gl.shaderSource(vertexShader, BodyVertexShader);
   gl.compileShader(vertexShader);
 
-  var fragmentShaderSource = document.getElementById("fragment-shader")
-    .textContent;
-  var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(fragmentShader, fragmentShaderSource);
+  // Initialize body fragment shader
+  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
+  gl.shaderSource(fragmentShader, BodyFragmentShader);
   gl.compileShader(fragmentShader);
 
-  programObject = gl.createProgram();
+  // Initialize shader program
+  programObject = gl.createProgram() as WebGLProgram;
   gl.attachShader(programObject, vertexShader);
   gl.attachShader(programObject, fragmentShader);
 
+  // Link shader variables
   gl.bindAttribLocation(programObject, 0, "a_position");
   gl.bindAttribLocation(programObject, 1, "a_color");
   gl.linkProgram(programObject);
-
   matrixLocation = gl.getUniformLocation(programObject, "u_matrix");
 }
 
+/**
+ * Initialize wire shaders.
+ */
 function initWireShaders() {
-  var wireVertexShaderSource = document.getElementById("wire-vertex-shader")
-    .textContent;
-  var wireVertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(wireVertexShader, wireVertexShaderSource);
+  gl = gl as WebGLRenderingContext;
+
+  // Initialize wire vertex shaders
+  const wireVertexShader = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
+  gl.shaderSource(wireVertexShader, WireVertexShader);
   gl.compileShader(wireVertexShader);
 
-  var wireFragmentSource = document.getElementById("wire-fragment-shader")
-    .textContent;
-  var wireFragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(wireFragmentShader, wireFragmentSource);
+  // Initialize wire fragment shaders
+  const wireFragmentShader = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
+  gl.shaderSource(wireFragmentShader, WireFragmentShader);
   gl.compileShader(wireFragmentShader);
 
-  wireProgramObject = gl.createProgram();
+  // Initialize wire shader program
+  wireProgramObject = gl.createProgram() as WebGLProgram;
   gl.attachShader(wireProgramObject, wireVertexShader);
   gl.attachShader(wireProgramObject, wireFragmentShader);
 
+  // Link shader variables
   gl.bindAttribLocation(wireProgramObject, 0, "a_position");
   gl.linkProgram(wireProgramObject);
-
   wireMatrixLocation = gl.getUniformLocation(wireProgramObject, "u_matrix");
 }
 
+/**
+ * Function to calculate current transformation matrix.
+ */
 function calculateMatrix() {
   matrix = getScaleMatrix(xScale, yScale, zScale);
   matrix = multiplyMatrix(
@@ -142,44 +174,63 @@ function calculateMatrix() {
     matrix
   );
 }
-
+/**
+ * Draw objects
+ */
 function draw() {
+  gl = gl as WebGLRenderingContext;
+
+  // Reset canvas
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.CULL_FACE);
   gl.enable(gl.DEPTH_TEST);
+
+  // Use WebGL Program
   gl.useProgram(programObject);
 
+  // Retrieve buffers
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
   gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, colorOffset);
   gl.enableVertexAttribArray(1);
 
+  // Bind transformation matrix
   gl.uniformMatrix4fv(matrixLocation, false, matrix);
 
+  // Bind and draw triangles
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
   gl.drawElements(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT, 0);
 
+  // Draw wireframe
   drawWire();
 }
 
+/**
+ * Draw wireframe
+ */
 function drawWire() {
+  gl = gl as WebGLRenderingContext;
+
+  // Use WebGL Program
   gl.useProgram(wireProgramObject);
 
+  // Bind transformation matrix
   gl.uniformMatrix4fv(wireMatrixLocation, false, matrix);
 
+  // Retrieve buffers
   gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(0);
 
+  // Bind and draw wireframes
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
-  gl.drawElements(gl.LINES, this.wireNumElements, gl.UNSIGNED_SHORT, 0);
+  gl.drawElements(gl.LINES, wireNumElements, gl.UNSIGNED_SHORT, 0);
 }
 
-function createWireIndices(triangleIndices) {
-  var wireIndices = new Uint16Array(triangleIndices.length * 2);
-  var i, j;
-  j = 0;
-  for (i = 0; i < triangleIndices.length; i += 3) {
+function createWireIndices(triangleIndices: Uint16Array) {
+  const wireIndices = new Uint16Array(triangleIndices.length * 2);
+  let j = 0;
+  for (let i = 0; i < triangleIndices.length; i += 3) {
     wireIndices[j++] = triangleIndices[i];
     wireIndices[j++] = triangleIndices[i + 1];
 
@@ -193,6 +244,7 @@ function createWireIndices(triangleIndices) {
 }
 
 function initEvents() {
+  // Set initial value
   xRotation = (document.getElementById("x-rotation") as HTMLInputElement)
     .valueAsNumber;
   yRotation = (document.getElementById("y-rotation") as HTMLInputElement)
@@ -212,57 +264,81 @@ function initEvents() {
   zTranslation = (document.getElementById("z-translation") as HTMLInputElement)
     .valueAsNumber;
 
-  document.getElementById("x-rotation").addEventListener("input", (ev) => {
-    xRotation = (document.getElementById("x-rotation") as HTMLInputElement)
-      .valueAsNumber;
-    calculateMatrix();
-    draw();
-  });
-  document.getElementById("y-rotation").addEventListener("input", (ev) => {
-    yRotation = (document.getElementById("y-rotation") as HTMLInputElement)
-      .valueAsNumber;
-    calculateMatrix();
-    draw();
-  });
-  document.getElementById("z-rotation").addEventListener("input", (ev) => {
-    zRotation = (document.getElementById("z-rotation") as HTMLInputElement)
-      .valueAsNumber;
-    calculateMatrix();
-    draw();
-  });
-  document.getElementById("x-scale").addEventListener("input", (ev) => {
-    xScale = (document.getElementById("x-scale") as HTMLInputElement)
-      .valueAsNumber;
-    calculateMatrix();
-    draw();
-  });
-  document.getElementById("y-scale").addEventListener("input", (ev) => {
-    yScale = (document.getElementById("y-scale") as HTMLInputElement)
-      .valueAsNumber;
-    calculateMatrix();
-    draw();
-  });
-  document.getElementById("z-scale").addEventListener("input", (ev) => {
-    zScale = (document.getElementById("z-scale") as HTMLInputElement)
-      .valueAsNumber;
-    calculateMatrix();
-    draw();
-  });
-  document.getElementById("x-translation").addEventListener("input", (ev) => {
+  (document.getElementById("x-rotation") as HTMLInputElement).addEventListener(
+    "input",
+    (ev) => {
+      xRotation = (document.getElementById("x-rotation") as HTMLInputElement)
+        .valueAsNumber;
+      calculateMatrix();
+      draw();
+    }
+  );
+  (document.getElementById("y-rotation") as HTMLInputElement).addEventListener(
+    "input",
+    (ev) => {
+      yRotation = (document.getElementById("y-rotation") as HTMLInputElement)
+        .valueAsNumber;
+      calculateMatrix();
+      draw();
+    }
+  );
+  (document.getElementById("z-rotation") as HTMLInputElement).addEventListener(
+    "input",
+    (ev) => {
+      zRotation = (document.getElementById("z-rotation") as HTMLInputElement)
+        .valueAsNumber;
+      calculateMatrix();
+      draw();
+    }
+  );
+  (document.getElementById("x-scale") as HTMLInputElement).addEventListener(
+    "input",
+    (ev) => {
+      xScale = (document.getElementById("x-scale") as HTMLInputElement)
+        .valueAsNumber;
+      calculateMatrix();
+      draw();
+    }
+  );
+  (document.getElementById("y-scale") as HTMLInputElement).addEventListener(
+    "input",
+    (ev) => {
+      yScale = (document.getElementById("y-scale") as HTMLInputElement)
+        .valueAsNumber;
+      calculateMatrix();
+      draw();
+    }
+  );
+  (document.getElementById("z-scale") as HTMLInputElement).addEventListener(
+    "input",
+    (ev) => {
+      zScale = (document.getElementById("z-scale") as HTMLInputElement)
+        .valueAsNumber;
+      calculateMatrix();
+      draw();
+    }
+  );
+  (document.getElementById(
+    "x-translation"
+  ) as HTMLInputElement).addEventListener("input", (ev) => {
     xTranslation = (document.getElementById(
       "x-translation"
     ) as HTMLInputElement).valueAsNumber;
     calculateMatrix();
     draw();
   });
-  document.getElementById("y-translation").addEventListener("input", (ev) => {
+  (document.getElementById(
+    "y-translation"
+  ) as HTMLInputElement).addEventListener("input", (ev) => {
     yTranslation = (document.getElementById(
       "y-translation"
     ) as HTMLInputElement).valueAsNumber;
     calculateMatrix();
     draw();
   });
-  document.getElementById("z-translation").addEventListener("input", (ev) => {
+  (document.getElementById(
+    "z-translation"
+  ) as HTMLInputElement).addEventListener("input", (ev) => {
     zTranslation = (document.getElementById(
       "z-translation"
     ) as HTMLInputElement).valueAsNumber;
