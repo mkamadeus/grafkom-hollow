@@ -244,3 +244,10 @@ export const cubeIndices = new Uint16Array([
 41,43,44,44,45,41,
 43,59,60,60,44,43,
 ]);
+
+export const cubeMaterial = {
+  ambient: [1.0, 0.0, 1.0, 1.0],
+  diffuse: [1.0, 0.8, 0.0, 1.0],
+  specular: [1.0, 0.8, 0.0, 1.0],
+  shininess: 100.0,
+};

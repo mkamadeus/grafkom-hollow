@@ -6,6 +6,9 @@ import {
   getTranslationMatrix,
   getRotationMatrix,
   getPerspectiveMatrix,
+  getInverse,
+  getIdentityMatrix,
+  getLookAt,
 } from "./utils/Matrix4";
 
 import BodyVertexShader from "./shaders/BodyVertexShader.glsl";
@@ -32,6 +35,13 @@ let wireProjectionMatrixLocation: WebGLUniformLocation | null = null;
 
 let wireIndices = null;
 let matrix = Array(16).fill(0);
+
+// Camera matrix
+let xRotationCamera = 0;
+let yRotationCamera = 0;
+let cameraDistance = 2;
+let cameraMatrix = Array(16).fill(0);
+let projectionMatrix = Array(16).fill(0);
 
 // Transformation variables
 let xRotation = 0;
@@ -71,6 +81,7 @@ function init() {
   initWireShaders();
   initEvents();
   calculateMatrix();
+  calculateCameraProjection();
 
   draw();
 }
@@ -185,6 +196,34 @@ function calculateMatrix() {
     matrix
   );
 }
+
+/**
+ * Function to calculate the projection matrix.
+ */
+function calculateCameraProjection() {
+  cameraMatrix = getRotationMatrix(xRotationCamera, yRotationCamera, 0);
+  cameraMatrix = multiplyMatrix(
+    getTranslationMatrix(0, 0, cameraDistance),
+    cameraMatrix
+  );
+
+  const cameraPosition = [cameraMatrix[12], cameraMatrix[13], cameraMatrix[14]];
+  const targetPosition = [0, 0, 0];
+  const up = [0, 1, 0];
+
+  cameraMatrix = getLookAt(cameraPosition, targetPosition, up);
+  // cameraMatrix
+
+  projectionMatrix = multiplyMatrix(
+    getInverse(cameraMatrix),
+    getPerspectiveMatrix(60, 1, 1, 2000)
+    // cameraMatrix
+  );
+
+  // projectionMatrix = getPerspectiveMatrix(60, 1, 1, 2000);
+  console.log(projectionMatrix);
+}
+
 /**
  * Draw objects
  */
@@ -208,11 +247,7 @@ function draw() {
 
   // Initiate transformation matrix
   gl.uniformMatrix4fv(matrixLocation, false, matrix);
-  gl.uniformMatrix4fv(
-    projectionMatrixLocation,
-    false,
-    getPerspectiveMatrix(90, 1, 1, 100)
-  );
+  gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 
   // Bind and draw triangles
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
@@ -233,11 +268,7 @@ function drawWire() {
 
   // Bind transformation matrix
   gl.uniformMatrix4fv(wireMatrixLocation, false, matrix);
-  gl.uniformMatrix4fv(
-    wireProjectionMatrixLocation,
-    false,
-    getPerspectiveMatrix(90, 1, 1, 100)
-  );
+  gl.uniformMatrix4fv(wireProjectionMatrixLocation, false, projectionMatrix);
 
   // Retrieve buffers
   gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
@@ -284,6 +315,15 @@ function initEvents() {
     .valueAsNumber;
   zTranslation = (document.getElementById("z-translation") as HTMLInputElement)
     .valueAsNumber;
+  xRotationCamera = (document.getElementById(
+    "x-camera-rotation"
+  ) as HTMLInputElement).valueAsNumber;
+  yRotationCamera = (document.getElementById(
+    "y-camera-rotation"
+  ) as HTMLInputElement).valueAsNumber;
+  cameraDistance = (document.getElementById(
+    "camera-distance"
+  ) as HTMLInputElement).valueAsNumber;
 
   (document.getElementById("x-rotation") as HTMLInputElement).addEventListener(
     "input",
@@ -364,6 +404,33 @@ function initEvents() {
       "z-translation"
     ) as HTMLInputElement).valueAsNumber;
     calculateMatrix();
+    draw();
+  });
+  (document.getElementById(
+    "x-camera-rotation"
+  ) as HTMLInputElement).addEventListener("input", (ev) => {
+    xRotationCamera = (document.getElementById(
+      "x-camera-rotation"
+    ) as HTMLInputElement).valueAsNumber;
+    calculateCameraProjection();
+    draw();
+  });
+  (document.getElementById(
+    "y-camera-rotation"
+  ) as HTMLInputElement).addEventListener("input", (ev) => {
+    yRotationCamera = (document.getElementById(
+      "y-camera-rotation"
+    ) as HTMLInputElement).valueAsNumber;
+    calculateCameraProjection();
+    draw();
+  });
+  (document.getElementById(
+    "camera-distance"
+  ) as HTMLInputElement).addEventListener("input", (ev) => {
+    cameraDistance = (document.getElementById(
+      "camera-distance"
+    ) as HTMLInputElement).valueAsNumber;
+    calculateCameraProjection();
     draw();
   });
 }
