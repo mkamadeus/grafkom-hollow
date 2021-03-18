@@ -1,6 +1,11 @@
 import "./styles/style.css";
 import { cubeColors, cubeIndices, cubePositions } from "./models/cube";
 import {
+  tetrahedronColors,
+  tetrahedronIndices,
+  tetrahedronPositions,
+} from "./models/tetrahedron";
+import {
   multiplyMatrix,
   getScaleMatrix,
   getTranslationMatrix,
@@ -98,21 +103,21 @@ function initModel() {
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
   gl.bufferData(
     gl.ARRAY_BUFFER,
-    cubePositions.byteLength + cubeColors.byteLength,
+    tetrahedronPositions.byteLength + tetrahedronColors.byteLength,
     gl.STATIC_DRAW
   );
-  colorOffset = cubePositions.byteLength;
-  gl.bufferSubData(gl.ARRAY_BUFFER, 0, cubePositions);
-  gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, cubeColors);
+  colorOffset = tetrahedronPositions.byteLength;
+  gl.bufferSubData(gl.ARRAY_BUFFER, 0, tetrahedronPositions);
+  gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, tetrahedronColors);
 
   // Store element triangle definition
   elementVbo = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cubeIndices, gl.STATIC_DRAW);
-  numElements = cubeIndices.length;
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, tetrahedronIndices, gl.STATIC_DRAW);
+  numElements = tetrahedronIndices.length;
 
   // Store wire definition
-  wireIndices = createWireIndices(cubeIndices);
+  wireIndices = createWireIndices(tetrahedronIndices);
   wireVbo = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
