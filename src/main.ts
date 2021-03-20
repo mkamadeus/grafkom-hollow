@@ -62,7 +62,7 @@ let yTranslation = 0;
 let zTranslation = 0;
 
 function main() {
-  const canvas = document.getElementById("c") as HTMLCanvasElement;
+  const canvas = document.getElementById("webgl-canvas") as HTMLCanvasElement;
 
   const ratio = window.devicePixelRatio ? window.devicePixelRatio : 1;
   canvas.width = 1200 * ratio;

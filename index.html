@@ -2,123 +2,187 @@
 <html lang="en">
   <head>
     <title>Grafkom Hollow</title>
-    <style type="text/css">
-      .canvascontainer {
-        float: left;
-        margin: 10px;
-        pointer-events: none;
-      }
-      .centeredcanvas {
-        width: 600;
-        height: 600;
-        margin: 0px auto;
-      }
-    </style>
   </head>
-  <body id="body">
-    <div style="top: 60px">
-      <div>Hollow Canvas</div>
-      <div style="display: inline-block">
-        <p>x rotation</p>
-        <input id="x-rotation" type="range" min="-180" max="180" value="0" />
-        <p>y rotation</p>
-        <input id="y-rotation" type="range" min="-180" max="180" value="0" />
-        <p>z rotation</p>
-        <input id="z-rotation" type="range" min="-180" max="180" value="0" />
+  <body class="bg-gray-900 min-h-screen font-mono">
+    <div class="container mx-auto p-6">
+      <!-- HEADERS -->
+      <div class="mb-4 text-center">
+        <h1 class="font-bold text-pink-400 text-6xl">Hollow Canvas</h1>
       </div>
-      <div style="display: inline-block">
-        <p>x scale</p>
-        <input
-          id="x-scale"
-          type="range"
-          min="0.2"
-          max="2"
-          value="1"
-          step="0.1"
-        />
-        <p>y scale</p>
-        <input
-          id="y-scale"
-          type="range"
-          min="0.2"
-          max="2"
-          value="1"
-          step="0.1"
-        />
-        <p>z scale</p>
-        <input
-          id="z-scale"
-          type="range"
-          min="0.2"
-          max="2"
-          value="1"
-          step="0.1"
-        />
+
+      <!-- TOOLBOX, TRANSFORMATIONS -->
+      <div class="flex justify-center text-pink-400">
+        <div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="x-rotation">x-rotation</label>
+            <input
+              id="x-rotation"
+              type="range"
+              min="-180"
+              max="180"
+              value="0"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="y-rotation">y-rotation</label>
+            <input id="y-rotation" type="range" min="-90" max="90" value="0" />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="z-rotation">z-rotation</label>
+            <input
+              id="z-rotation"
+              type="range"
+              min="-180"
+              max="180"
+              value="0"
+            />
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="x-scale">x-scale</label>
+            <input
+              id="x-scale"
+              type="range"
+              min="0.2"
+              max="1"
+              step="0.1"
+              value="1"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="y-scale">y-scale</label>
+            <input
+              id="y-scale"
+              type="range"
+              min="0.2"
+              max="1"
+              step="0.1"
+              value="1"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="z-scale">z-scale</label>
+            <input
+              id="z-scale"
+              type="range"
+              min="0.2"
+              max="1"
+              step="0.1"
+              value="1"
+            />
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="x-translation">x-translation</label>
+            <input
+              id="x-translation"
+              type="range"
+              min="-100"
+              max="100"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="y-translation">y-translation</label>
+            <input
+              id="y-translation"
+              type="range"
+              min="-100"
+              max="100"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="z-translation">z-translation</label>
+            <input
+              id="z-translation"
+              type="range"
+              min="-100"
+              max="100"
+              step="1"
+              value="0"
+            />
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="x-camera-rotation">x-cam-rot</label>
+            <input
+              id="x-camera-rotation"
+              type="range"
+              min="-90"
+              max="90"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="y-camera-rotation">y-cam-rot</label>
+            <input
+              id="y-camera-rotation"
+              type="range"
+              min="-180"
+              max="180"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="camera-distance">radius-cam</label>
+            <input
+              id="camera-distance"
+              type="range"
+              min="0"
+              max="20"
+              step="0.1"
+              value="10"
+            />
+          </div>
+        </div>
       </div>
-      <div style="display: inline-block">
-        <p>x translation</p>
-        <input
-          id="x-translation"
-          type="range"
-          min="-10"
-          max="10"
-          value="0"
-          step="0.1"
-        />
-        <p>y translation</p>
-        <input
-          id="y-translation"
-          type="range"
-          min="-10"
-          max="10"
-          value="0"
-          step="0.1"
-        />
-        <p>z translation</p>
-        <input
-          id="z-translation"
-          type="range"
-          min="-10"
-          max="10"
-          value="0"
-          step="0.1"
-        />
+
+      <!-- TODO : CHANGE MODEL AND PERSPECTIVE-->
+      <div class="flex justify-center p-2">
+        <div class="flex space-x-1 mx-2">
+          <button class="rounded py-1 px-2 text-white bg-pink-500">
+            Model 1
+          </button>
+          <button class="rounded py-1 px-2 text-white bg-pink-500">
+            Model 2
+          </button>
+          <button class="rounded py-1 px-2 text-white bg-pink-500">
+            Model 3
+          </button>
+        </div>
+        <div class="flex space-x-1 mx-2">
+          <button class="rounded py-1 px-2 text-white bg-pink-500">
+            Perspective
+          </button>
+          <button class="rounded py-1 px-2 text-white bg-pink-500">
+            Oblique
+          </button>
+          <button class="rounded py-1 px-2 text-white bg-pink-500">
+            Isometric
+          </button>
+        </div>
+        <div class="flex space-x-1 mx-2">
+          <button class="rounded py-1 px-2 text-white bg-pink-500">
+            Toggle Shading
+          </button>
+        </div>
       </div>
-      <div style="display: inline-block">
-        <p>pitch</p>
-        <input
-          id="x-camera-rotation"
-          type="range"
-          min="-90"
-          max="90"
-          value="0"
-          step="0.1"
-        />
-        <p>yaw</p>
-        <input
-          id="y-camera-rotation"
-          type="range"
-          min="-180"
-          max="180"
-          value="0"
-          step="0.1"
-        />
-        <p>distance</p>
-        <input
-          id="camera-distance"
-          type="range"
-          min="-10"
-          max="10"
-          value="2"
-          step="0.1"
-        />
+
+      <!-- CANVAS -->
+      <div class="flex justify-center w-full p-6">
+        <canvas
+          id="webgl-canvas"
+          class="shadow-lg bg-gray-800 rounded-xl"
+        ></canvas>
       </div>
-      <br />
-      <canvas
-        id="c"
-        class="centeredcanvas"
-        style="border: 1px solid black"
-      ></canvas>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
