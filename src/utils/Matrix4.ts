@@ -306,3 +306,23 @@ export const getPerspectiveMatrix = (
     0, 0, -1, 0
   ]
 };
+
+export const getOrthographicMatrix = (
+  left: number,
+  right: number,
+  bottom: number,
+  top: number,
+  near: number,
+  far: number
+) => {
+  return [
+    2/(right-left), 0, 0, 0,
+    0, 2/(top-bottom), 0, 0,
+    0, 0, 2/(near-far), 0,
+
+    (left + right) / (left - right),
+    (bottom + top) / (bottom - top),
+    (near + far) / (near - far),
+    1,
+  ];
+}

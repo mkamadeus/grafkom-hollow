@@ -5,12 +5,14 @@ import {
   tetrahedronIndices,
   tetrahedronPositions,
 } from "./models/tetrahedron";
+import { triangleColors, triangleIndices, trianglePositions } from "./models/triangle";
 import {
   multiplyMatrix,
   getScaleMatrix,
   getTranslationMatrix,
   getRotationMatrix,
   getPerspectiveMatrix,
+  getOrthographicMatrix,
   getInverse,
   getIdentityMatrix,
   getLookAt,
@@ -103,21 +105,21 @@ function initModel() {
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
   gl.bufferData(
     gl.ARRAY_BUFFER,
-    tetrahedronPositions.byteLength + tetrahedronColors.byteLength,
+    trianglePositions.byteLength + triangleColors.byteLength,
     gl.STATIC_DRAW
   );
-  colorOffset = tetrahedronPositions.byteLength;
-  gl.bufferSubData(gl.ARRAY_BUFFER, 0, tetrahedronPositions);
-  gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, tetrahedronColors);
+  colorOffset = trianglePositions.byteLength;
+  gl.bufferSubData(gl.ARRAY_BUFFER, 0, trianglePositions);
+  gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, triangleColors);
 
   // Store element triangle definition
   elementVbo = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, tetrahedronIndices, gl.STATIC_DRAW);
-  numElements = tetrahedronIndices.length;
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, triangleIndices, gl.STATIC_DRAW);
+  numElements = triangleIndices.length;
 
   // Store wire definition
-  wireIndices = createWireIndices(tetrahedronIndices);
+  wireIndices = createWireIndices(triangleIndices);
   wireVbo = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
@@ -206,6 +208,7 @@ function calculateMatrix() {
  * Function to calculate the projection matrix.
  */
 function calculateCameraProjection() {
+  gl = gl as WebGLRenderingContext;
   cameraMatrix = getRotationMatrix(xRotationCamera, yRotationCamera, 0);
   cameraMatrix = multiplyMatrix(
     getTranslationMatrix(0, 0, cameraDistance),
@@ -224,6 +227,12 @@ function calculateCameraProjection() {
     getPerspectiveMatrix(60, 1, 1, 2000)
     // cameraMatrix
   );
+  /*console.log("width:", gl.canvas.width)
+  console.log("height:", gl.canvas.height)
+  projectionMatrix = multiplyMatrix(
+    getInverse(cameraMatrix),
+    getOrthographicMatrix(0, gl.canvas.width, 0, gl.canvas.height, 1, 2000)
+  );*/
 
   // projectionMatrix = getPerspectiveMatrix(60, 1, 1, 2000);
   console.log(projectionMatrix);
