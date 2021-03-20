@@ -201,6 +201,17 @@ export const getInverse = (m: number[]) => {
   ];
 };
 
+export const getTranspose = (m: number[]) => {
+  var newM = Array(m.length).fill(0);
+  for(var i = 0; i < Math.sqrt(m.length); i++){
+    for(var j = 0; j < Math.sqrt(m.length); j++){
+      newM[i * Math.sqrt(m.length) + j] = m[i + j * Math.sqrt(m.length)];
+      newM[i + j * Math.sqrt(m.length)] = m[i * Math.sqrt(m.length) + j];
+    }
+  }
+  return newM;
+}
+
 export const determinant3 = (m: number[]) => {
   if (m.length !== 9) throw new Error("💀 Length not equal to 9!");
   return (
