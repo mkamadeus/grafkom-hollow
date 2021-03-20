@@ -5,7 +5,11 @@ import {
   tetrahedronIndices,
   tetrahedronPositions,
 } from "./models/tetrahedron";
-import { triangleColors, triangleIndices, trianglePositions } from "./models/triangle";
+import {
+  triangleColors,
+  triangleIndices,
+  trianglePositions,
+} from "./models/triangle";
 import {
   multiplyMatrix,
   getScaleMatrix,
@@ -23,6 +27,7 @@ import BodyVertexShader from "./shaders/BodyVertexShader.glsl";
 import BodyFragmentShader from "./shaders/BodyFragmentShader.glsl";
 import WireVertexShader from "./shaders/WireVertexShader.glsl";
 import WireFragmentShader from "./shaders/WireFragmentShader.glsl";
+import { subtractVector, addVector, transformVector } from "./utils/Vector3";
 
 let gl: WebGLRenderingContext | null = null;
 let programObject: WebGLProgram | null = null;
@@ -192,11 +197,7 @@ function initShaders() {
   dc = gl.getUniformLocation(programObject, "diffuseColor");
   sc = gl.getUniformLocation(programObject, "specularColor");
   lightPos = gl.getUniformLocation(programObject, "lightPos");
-  normalMatrixLocation = gl.getUniformLocation(
-    programObject,
-    "normalMat"
-  );
-
+  normalMatrixLocation = gl.getUniformLocation(programObject, "normalMat");
 }
 
 /**
@@ -246,37 +247,36 @@ function calculateMatrix() {
 }
 
 /**
- * Function to calculate the projection matrix.
+ * Function to calculate the projection matrix. Arcball camera pointed at (0,0,0).
  */
 function calculateCameraProjection() {
   gl = gl as WebGLRenderingContext;
-  cameraMatrix = getRotationMatrix(xRotationCamera, yRotationCamera, 0);
-  cameraMatrix = multiplyMatrix(
-    getTranslationMatrix(0, 0, cameraDistance),
-    cameraMatrix
-  );
 
-  const cameraPosition = [cameraMatrix[12], cameraMatrix[13], cameraMatrix[14]];
+  let cameraPosition = [0, 0, cameraDistance];
   const targetPosition = [0, 0, 0];
   const up = [0, 1, 0];
 
-  cameraMatrix = getLookAt(cameraPosition, targetPosition, up);
-  // cameraMatrix
+  const xRotationMatrix = getRotationMatrix(xRotationCamera, 0, 0);
+  let forwardVector = [...subtractVector(cameraPosition, targetPosition), 1];
+  cameraPosition = addVector(
+    transformVector(xRotationMatrix, forwardVector),
+    targetPosition
+  );
 
+  const yRotationMatrix = getRotationMatrix(0, yRotationCamera, 0);
+  forwardVector = [...subtractVector(cameraPosition, targetPosition), 1];
+  cameraPosition = addVector(
+    transformVector(yRotationMatrix, forwardVector),
+    targetPosition
+  );
+
+  cameraMatrix = getLookAt(cameraPosition, targetPosition, up);
+
+  // TODO : Change projection
   projectionMatrix = multiplyMatrix(
     getInverse(cameraMatrix),
     getPerspectiveMatrix(60, 1, 1, 2000)
-    // cameraMatrix
   );
-  /*console.log("width:", gl.canvas.width)
-  console.log("height:", gl.canvas.height)
-  projectionMatrix = multiplyMatrix(
-    getInverse(cameraMatrix),
-    getOrthographicMatrix(0, gl.canvas.width, 0, gl.canvas.height, 1, 2000)
-  );*/
-
-  // projectionMatrix = getPerspectiveMatrix(60, 1, 1, 2000);
-  console.log(projectionMatrix);
 }
 
 /**
@@ -284,18 +284,18 @@ function calculateCameraProjection() {
  */
 function calculateSurfaceNormal() {
   var vertNormal = Array(cubePositions.length).fill(0);
-  for(var i = 0; i < cubeIndices.length/3; i = i+3){
+  for (var i = 0; i < cubeIndices.length / 3; i = i + 3) {
     var p1 = [];
     var p2 = [];
     var p3 = [];
-    for(var j = 0; j < 3; j++){
+    for (var j = 0; j < 3; j++) {
       p1.push(cubePositions[cubeIndices[i] * 3 + j]);
       p2.push(cubePositions[cubeIndices[i + 1] * 3 + j]);
       p3.push(cubePositions[cubeIndices[i + 2] * 3 + j]);
     }
     var u = [];
     var v = [];
-    for(var j = 0; j < 3; j++){
+    for (var j = 0; j < 3; j++) {
       u.push(p2[j] - p1[j]);
       v.push(p3[j] - p1[j]);
     }
@@ -305,7 +305,7 @@ function calculateSurfaceNormal() {
 
     var normal = [nx, ny, nz];
 
-    for(var j = 0; j < 3; j++){
+    for (var j = 0; j < 3; j++) {
       vertNormal[cubeIndices[i] * 3 + j] += normal[j];
       vertNormal[cubeIndices[i + 1] * 3 + j] += normal[j];
       vertNormal[cubeIndices[i + 2] * 3 + j] += normal[j];
@@ -340,7 +340,11 @@ function draw() {
   // Initiate transformation matrix
   gl.uniformMatrix4fv(matrixLocation, false, matrix);
   gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
-  gl.uniformMatrix4fv(normalMatrixLocation, false, new Float32Array(getTranspose(getInverse(matrix))));
+  gl.uniformMatrix4fv(
+    normalMatrixLocation,
+    false,
+    new Float32Array(getTranspose(getInverse(matrix)))
+  );
 
   // Phong shader uniform
   gl.uniform1i(mode, 1);

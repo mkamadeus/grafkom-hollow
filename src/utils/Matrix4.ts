@@ -203,14 +203,14 @@ export const getInverse = (m: number[]) => {
 
 export const getTranspose = (m: number[]) => {
   var newM = Array(m.length).fill(0);
-  for(var i = 0; i < Math.sqrt(m.length); i++){
-    for(var j = 0; j < Math.sqrt(m.length); j++){
+  for (var i = 0; i < Math.sqrt(m.length); i++) {
+    for (var j = 0; j < Math.sqrt(m.length); j++) {
       newM[i * Math.sqrt(m.length) + j] = m[i + j * Math.sqrt(m.length)];
       newM[i + j * Math.sqrt(m.length)] = m[i * Math.sqrt(m.length) + j];
     }
   }
   return newM;
-}
+};
 
 export const determinant3 = (m: number[]) => {
   if (m.length !== 9) throw new Error("💀 Length not equal to 9!");
@@ -270,8 +270,6 @@ export const getLookAt = (
   const x = normalizeVector(crossVector(up, z));
   const y = normalizeVector(crossVector(z, x));
 
-  console.log(x, y, z);
-
   // prettier-ignore
   return [
     x[0], x[1], x[2], 0,
@@ -327,13 +325,22 @@ export const getOrthographicMatrix = (
   far: number
 ) => {
   return [
-    2/(right-left), 0, 0, 0,
-    0, 2/(top-bottom), 0, 0,
-    0, 0, 2/(near-far), 0,
+    2 / (right - left),
+    0,
+    0,
+    0,
+    0,
+    2 / (top - bottom),
+    0,
+    0,
+    0,
+    0,
+    2 / (near - far),
+    0,
 
     (left + right) / (left - right),
     (bottom + top) / (bottom - top),
     (near + far) / (near - far),
     1,
   ];
-}
+};
