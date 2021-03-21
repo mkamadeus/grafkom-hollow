@@ -54,6 +54,7 @@ let lightPos: WebGLUniformLocation | null = null;
 
 let wireIndices = null;
 let matrix = Array(16).fill(0);
+let type = 1;
 
 // Camera matrix
 let xRotationCamera = 0;
@@ -87,7 +88,7 @@ function main() {
 
   gl = canvas.getContext("webgl");
   if (!gl) alert("Your browser/machine does not support WebGL!");
-
+  console.log(type);
   init();
 }
 
@@ -98,7 +99,7 @@ function init() {
   gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
-  initModel();
+  initModel(type);
   initShaders();
   initWireShaders();
   initEvents();
@@ -111,18 +112,82 @@ function init() {
 /**
  * Insert object model to WebGL buffers.
  */
-function initModel() {
+function initModel(type: number) {
   gl = gl as WebGLRenderingContext;
 
   vbo = gl.createBuffer() as WebGLBuffer;
 
   // Store cube vertex positions and colors
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    trianglePositions.byteLength + cubeNormal.byteLength,
-    gl.STATIC_DRAW
-  );
+  if (type == 1){
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      trianglePositions.byteLength + cubeNormal.byteLength,
+      gl.STATIC_DRAW
+    );
+    normalOffset = trianglePositions.byteLength;
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, trianglePositions);
+    gl.bufferSubData(gl.ARRAY_BUFFER, normalOffset, cubeNormal);
+
+    // Store element triangle definition
+    elementVbo = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, triangleIndices, gl.STATIC_DRAW);
+    numElements = triangleIndices.length;
+
+    // Store wire definition
+    wireIndices = createWireIndices(triangleIndices);
+    wireVbo = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
+    wireNumElements = wireIndices.length;
+  }
+  else if (type == 2){
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      cubePositions.byteLength + cubeNormal.byteLength,
+      gl.STATIC_DRAW
+    );
+    normalOffset = cubePositions.byteLength;
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, cubePositions);
+    gl.bufferSubData(gl.ARRAY_BUFFER, normalOffset, cubeNormal);
+
+    // Store element triangle definition
+    elementVbo = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cubeIndices, gl.STATIC_DRAW);
+    numElements = cubeIndices.length;
+
+    // Store wire definition
+    wireIndices = createWireIndices(cubeIndices);
+    wireVbo = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
+    wireNumElements = wireIndices.length;
+  }
+  else if (type == 3){
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      tetrahedronPositions.byteLength + cubeNormal.byteLength,
+      gl.STATIC_DRAW
+    );
+    normalOffset = tetrahedronPositions.byteLength;
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, tetrahedronPositions);
+    gl.bufferSubData(gl.ARRAY_BUFFER, normalOffset, cubeNormal);
+
+    // Store element triangle definition
+    elementVbo = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, tetrahedronIndices, gl.STATIC_DRAW);
+    numElements = tetrahedronIndices.length;
+
+    // Store wire definition
+    wireIndices = createWireIndices(tetrahedronIndices);
+    wireVbo = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
+    wireNumElements = wireIndices.length;
+  }
   // colorOffset = tetrahedronPositions.byteLength;
   // gl.bufferSubData(gl.ARRAY_BUFFER, 0, tetrahedronPositions);
   // gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, tetrahedronColors);
@@ -130,7 +195,7 @@ function initModel() {
   //   gl.STATIC_DRAW
   // );
 
-  normalOffset = trianglePositions.byteLength;
+  /*normalOffset = trianglePositions.byteLength;
   gl.bufferSubData(gl.ARRAY_BUFFER, 0, trianglePositions);
   gl.bufferSubData(gl.ARRAY_BUFFER, normalOffset, cubeNormal);
 
@@ -145,7 +210,7 @@ function initModel() {
   wireVbo = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
-  wireNumElements = wireIndices.length;
+  wireNumElements = wireIndices.length;*/
 }
 
 /**
@@ -229,7 +294,6 @@ function initWireShaders() {
     "u_proj_matrix"
   );
 }
-
 /**
  * Function to calculate current transformation matrix.
  */
@@ -270,10 +334,7 @@ function calculateCameraProjection() {
   );
   /*console.log("width:", gl.canvas.width)
   console.log("height:", gl.canvas.height)
-  projectionMatrix = multiplyMatrix(
-    getInverse(cameraMatrix),
-    getOrthographicMatrix(0, gl.canvas.width, 0, gl.canvas.height, 1, 2000)
-  );*/
+  projectionMatrix = getOrthographicMatrix(0, gl.canvas.width, 0, gl.canvas.height, 1, 2000);*/
 
   // projectionMatrix = getPerspectiveMatrix(60, 1, 1, 2000);
   console.log(projectionMatrix);
@@ -428,7 +489,31 @@ function initEvents() {
   cameraDistance = (document.getElementById(
     "camera-distance"
   ) as HTMLInputElement).valueAsNumber;
-
+  
+  (document.getElementById("model1") as HTMLInputElement).addEventListener(
+    "click",
+    (ev) => {
+      type = 1;
+      initModel(type);
+      draw();
+    }
+  );
+  (document.getElementById("model2") as HTMLInputElement).addEventListener(
+    "click",
+    (ev) => {
+      type = 2;
+      initModel(type);
+      draw();
+    }
+  );
+  (document.getElementById("model3") as HTMLInputElement).addEventListener(
+    "click",
+    (ev) => {
+      type = 3;
+      initModel(type);
+      draw();
+    }
+  );
   (document.getElementById("x-rotation") as HTMLInputElement).addEventListener(
     "input",
     (ev) => {
