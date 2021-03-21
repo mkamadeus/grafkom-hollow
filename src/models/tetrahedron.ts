@@ -123,8 +123,8 @@ export const tetrahedronIndices = new Uint16Array([
 ]);
 
 export const tetrahedronMaterial = {
-  ambient: [1.0, 0.0, 1.0, 1.0],
-  diffuse: [1.0, 0.8, 0.0, 1.0],
-  specular: [1.0, 0.8, 0.0, 1.0],
+  ambient: [0.2, 0.0, 0.0],
+  diffuse: [1.0, 1.0, 1.0],
+  specular: [1.0, 1.0, 1.0],
   shininess: 100.0,
 };

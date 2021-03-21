@@ -2,7 +2,9 @@ precision mediump float;
 
 varying vec3 normalInterp;  // Surface normal
 varying vec3 vertPos;       // Vertex position
+varying vec4 v_color;
 uniform int mode;   // Rendering mode
+uniform int shading;
 uniform float Ka;   // Ambient reflection coefficient
 uniform float Kd;   // Diffuse reflection coefficient
 uniform float Ks;   // Specular reflection coefficient
@@ -27,14 +29,19 @@ void main() {
     float specAngle = max(dot(R, V), 0.0);
     specular = pow(specAngle, shininessVal);
   }
-  gl_FragColor = vec4(Ka * ambientColor +
-                      Kd * lambertian * diffuseColor +
-                      Ks * specular * specularColor, 1.0);
+  if(shading == 1){
+    gl_FragColor = vec4(Ka * ambientColor +
+                        Kd * lambertian * diffuseColor +
+                        Ks * specular * specularColor +
+                        vec3(v_color), 1.0);
 
-  // only ambient
-  if(mode == 2) gl_FragColor = vec4(Ka * ambientColor, 1.0);
-  // only diffuse
-  if(mode == 3) gl_FragColor = vec4(Kd * lambertian * diffuseColor, 1.0);
-  // only specular
-  if(mode == 4) gl_FragColor = vec4(Ks * specular * specularColor, 1.0);
+    // only ambient
+    if(mode == 2) gl_FragColor = vec4(Ka * ambientColor, 1.0);
+    // only diffuse
+    if(mode == 3) gl_FragColor = vec4(Kd * lambertian * diffuseColor, 1.0);
+    // only specular
+    if(mode == 4) gl_FragColor = vec4(Ks * specular * specularColor, 1.0);
+  } else {
+    gl_FragColor = vec4(vec3(v_color), 1.0);
+  }
 }

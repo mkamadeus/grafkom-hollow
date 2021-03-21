@@ -1,14 +1,16 @@
 import "./styles/style.css";
-import { cubeColors, cubeIndices, cubePositions } from "./models/cube";
+import { cubeColors, cubeIndices, cubePositions, cubeMaterial, } from "./models/cube";
 import {
   tetrahedronColors,
   tetrahedronIndices,
   tetrahedronPositions,
+  tetrahedronMaterial,
 } from "./models/tetrahedron";
 import {
   triangleColors,
   triangleIndices,
   trianglePositions,
+  triangleMaterial,
 } from "./models/triangle";
 import {
   multiplyMatrix,
@@ -29,6 +31,24 @@ import WireVertexShader from "./shaders/WireVertexShader.glsl";
 import WireFragmentShader from "./shaders/WireFragmentShader.glsl";
 import { subtractVector, addVector, transformVector } from "./utils/Vector3";
 
+let models = {
+  1: { positions: trianglePositions,
+    indices: triangleIndices,
+    colors: triangleColors,
+    material: triangleMaterial,
+  },
+  2: { positions: cubePositions,
+    indices: cubeIndices,
+    colors: cubeColors,
+    material: cubeMaterial,
+  },
+  3: { positions: tetrahedronPositions,
+    indices: tetrahedronIndices,
+    colors: tetrahedronColors,
+    material: tetrahedronMaterial,
+  },
+}
+
 let gl: WebGLRenderingContext | null = null;
 let programObject: WebGLProgram | null = null;
 let wireProgramObject: WebGLProgram | null = null;
@@ -38,6 +58,7 @@ let wireVbo: WebGLBuffer | null = null;
 let elementVbo: WebGLBuffer | null = null;
 
 let normalOffset: number = 0;
+let colorOffset: number = 0;
 let numElements: number = 0;
 let wireNumElements: number = 0;
 
@@ -56,10 +77,12 @@ let ac: WebGLUniformLocation | null = null;
 let dc: WebGLUniformLocation | null = null;
 let sc: WebGLUniformLocation | null = null;
 let lightPos: WebGLUniformLocation | null = null;
+let shadingModeLocation: WebGLUniformLocation | null = null;
 
 let wireIndices = null;
 let matrix = Array(16).fill(0);
 let type = 1;
+let shadingMode = 1;
 
 // Camera matrix
 let xRotationCamera = 0;
@@ -93,7 +116,6 @@ function main() {
 
   gl = canvas.getContext("webgl");
   if (!gl) alert("Your browser/machine does not support WebGL!");
-  console.log(type);
   init();
 }
 
@@ -104,7 +126,7 @@ function init() {
   gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
-  initModel(type);
+  initModel();
   initShaders();
   initWireShaders();
   initEvents();
@@ -117,105 +139,37 @@ function init() {
 /**
  * Insert object model to WebGL buffers.
  */
-function initModel(type: number) {
+function initModel() {
   gl = gl as WebGLRenderingContext;
 
   vbo = gl.createBuffer() as WebGLBuffer;
 
   // Store cube vertex positions and colors
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-  if (type == 1){
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      trianglePositions.byteLength + cubeNormal.byteLength,
-      gl.STATIC_DRAW
-    );
-    normalOffset = trianglePositions.byteLength;
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, trianglePositions);
-    gl.bufferSubData(gl.ARRAY_BUFFER, normalOffset, cubeNormal);
 
-    // Store element triangle definition
-    elementVbo = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, triangleIndices, gl.STATIC_DRAW);
-    numElements = triangleIndices.length;
-
-    // Store wire definition
-    wireIndices = createWireIndices(triangleIndices);
-    wireVbo = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
-    wireNumElements = wireIndices.length;
-  }
-  else if (type == 2){
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      cubePositions.byteLength + cubeNormal.byteLength,
-      gl.STATIC_DRAW
-    );
-    normalOffset = cubePositions.byteLength;
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, cubePositions);
-    gl.bufferSubData(gl.ARRAY_BUFFER, normalOffset, cubeNormal);
-
-    // Store element triangle definition
-    elementVbo = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cubeIndices, gl.STATIC_DRAW);
-    numElements = cubeIndices.length;
-
-    // Store wire definition
-    wireIndices = createWireIndices(cubeIndices);
-    wireVbo = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
-    wireNumElements = wireIndices.length;
-  }
-  else if (type == 3){
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      tetrahedronPositions.byteLength + cubeNormal.byteLength,
-      gl.STATIC_DRAW
-    );
-    normalOffset = tetrahedronPositions.byteLength;
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, tetrahedronPositions);
-    gl.bufferSubData(gl.ARRAY_BUFFER, normalOffset, cubeNormal);
-
-    // Store element triangle definition
-    elementVbo = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, tetrahedronIndices, gl.STATIC_DRAW);
-    numElements = tetrahedronIndices.length;
-
-    // Store wire definition
-    wireIndices = createWireIndices(tetrahedronIndices);
-    wireVbo = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
-    wireNumElements = wireIndices.length;
-  }
-  // colorOffset = tetrahedronPositions.byteLength;
-  // gl.bufferSubData(gl.ARRAY_BUFFER, 0, tetrahedronPositions);
-  // gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, tetrahedronColors);
-  //   cubePositions.byteLength + cubeNormal.byteLength,
-  //   gl.STATIC_DRAW
-  // );
-
-  /*normalOffset = trianglePositions.byteLength;
-  gl.bufferSubData(gl.ARRAY_BUFFER, 0, trianglePositions);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    models[type].positions.byteLength + cubeNormal.byteLength + models[type].colors.byteLength,
+    gl.STATIC_DRAW
+  );
+  normalOffset = models[type].positions.byteLength;
+  colorOffset = normalOffset + cubeNormal.byteLength;
+  gl.bufferSubData(gl.ARRAY_BUFFER, 0, models[type].positions);
   gl.bufferSubData(gl.ARRAY_BUFFER, normalOffset, cubeNormal);
+  gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, models[type].colors);
 
   // Store element triangle definition
   elementVbo = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, triangleIndices, gl.STATIC_DRAW);
-  numElements = triangleIndices.length;
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, models[type].indices, gl.STATIC_DRAW);
+  numElements = models[type].indices.length;
 
   // Store wire definition
-  wireIndices = createWireIndices(triangleIndices);
+  wireIndices = createWireIndices(models[type].indices);
   wireVbo = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
-  wireNumElements = wireIndices.length;*/
+  wireNumElements = wireIndices.length;
 }
 
 /**
@@ -242,18 +196,16 @@ function initShaders() {
   // Link shader variables
   gl.bindAttribLocation(programObject, 0, "a_position");
   gl.bindAttribLocation(programObject, 1, "normal");
-
-  console.log(vertexShader);
-  console.log(fragmentShader);
+  gl.bindAttribLocation(programObject, 2, "a_color");
 
   gl.linkProgram(programObject);
-  // normalLocation = gl.getAttribLocation(programObject, "normal");
   matrixLocation = gl.getUniformLocation(programObject, "u_matrix");
   projectionMatrixLocation = gl.getUniformLocation(
     programObject,
     "u_proj_matrix"
   );
   mode = gl.getUniformLocation(programObject, "mode");
+  shadingModeLocation = gl.getUniformLocation(programObject, "shading");
   ka = gl.getUniformLocation(programObject, "Ka");
   kd = gl.getUniformLocation(programObject, "Kd");
   ks = gl.getUniformLocation(programObject, "Ks");
@@ -346,16 +298,16 @@ function calculateCameraProjection() {
 /**
  * Function to calculate normals.
  */
-function calculateSurfaceNormal() {
-  var vertNormal = Array(cubePositions.length).fill(0);
-  for (var i = 0; i < cubeIndices.length / 3; i = i + 3) {
+function calculateNormal() {
+  var vertNormal = Array(models[type].positions.length).fill(0);
+  for (var i = 0; i < models[type].indices.length / 3; i = i + 3) {
     var p1 = [];
     var p2 = [];
     var p3 = [];
     for (var j = 0; j < 3; j++) {
-      p1.push(cubePositions[cubeIndices[i] * 3 + j]);
-      p2.push(cubePositions[cubeIndices[i + 1] * 3 + j]);
-      p3.push(cubePositions[cubeIndices[i + 2] * 3 + j]);
+      p1.push(models[type].positions[models[type].indices[i] * 3 + j]);
+      p2.push(models[type].positions[models[type].indices[i + 1] * 3 + j]);
+      p3.push(models[type].positions[models[type].indices[i + 2] * 3 + j]);
     }
     var u = [];
     var v = [];
@@ -370,9 +322,9 @@ function calculateSurfaceNormal() {
     var normal = [nx, ny, nz];
 
     for (var j = 0; j < 3; j++) {
-      vertNormal[cubeIndices[i] * 3 + j] += normal[j];
-      vertNormal[cubeIndices[i + 1] * 3 + j] += normal[j];
-      vertNormal[cubeIndices[i + 2] * 3 + j] += normal[j];
+      vertNormal[models[type].indices[i] * 3 + j] += normal[j];
+      vertNormal[models[type].indices[i + 1] * 3 + j] += normal[j];
+      vertNormal[models[type].indices[i + 2] * 3 + j] += normal[j];
     }
   }
   cubeNormal = new Float32Array(vertNormal);
@@ -382,7 +334,7 @@ function calculateSurfaceNormal() {
  * Draw objects
  */
 function draw() {
-  calculateSurfaceNormal();
+  calculateNormal();
 
   gl = gl as WebGLRenderingContext;
 
@@ -400,6 +352,8 @@ function draw() {
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, normalOffset);
   gl.enableVertexAttribArray(1);
+  gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 0, colorOffset);
+  gl.enableVertexAttribArray(2);
 
   // Initiate transformation matrix
   gl.uniformMatrix4fv(matrixLocation, false, matrix);
@@ -412,13 +366,15 @@ function draw() {
 
   // Phong shader uniform
   gl.uniform1i(mode, 1);
+  gl.uniform1i(shadingModeLocation, shadingMode);
   gl.uniform1f(ka, 1);
   gl.uniform1f(kd, 1);
   gl.uniform1f(ks, 1);
-  gl.uniform1f(shineVal, 80);
-  gl.uniform3fv(ac, new Float32Array([0.2, 0.0, 0.0]));
-  gl.uniform3fv(dc, new Float32Array([0.7, 0.7, 0.0]));
-  gl.uniform3fv(sc, new Float32Array([1.0, 1.0, 1.0]));
+  
+  gl.uniform1f(shineVal, models[type].material.shininess);
+  gl.uniform3fv(ac, new Float32Array(models[type].material.ambient));
+  gl.uniform3fv(dc, new Float32Array(models[type].material.diffuse));
+  gl.uniform3fv(sc, new Float32Array(models[type].material.specular));
   gl.uniform3fv(lightPos, new Float32Array([0, 0, 2]));
 
   // Bind and draw triangles
@@ -497,11 +453,18 @@ function initEvents() {
     "camera-distance"
   ) as HTMLInputElement).valueAsNumber;
   
+  (document.getElementById("toggle-shading") as HTMLInputElement).addEventListener(
+    "click",
+    (ev) => {
+      shadingMode = (shadingMode == 0) ? 1 : 0;
+      draw();
+    }
+  );
   (document.getElementById("model1") as HTMLInputElement).addEventListener(
     "click",
     (ev) => {
       type = 1;
-      initModel(type);
+      initModel();
       draw();
     }
   );
@@ -509,7 +472,7 @@ function initEvents() {
     "click",
     (ev) => {
       type = 2;
-      initModel(type);
+      initModel();
       draw();
     }
   );
@@ -517,7 +480,7 @@ function initEvents() {
     "click",
     (ev) => {
       type = 3;
-      initModel(type);
+      initModel();
       draw();
     }
   );
