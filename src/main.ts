@@ -83,6 +83,8 @@ let wireIndices = null;
 let matrix = Array(16).fill(0);
 let type = 1;
 let shadingMode = 1;
+let near = 1;
+let far = 50;
 
 // Camera matrix
 let xRotationCamera = 0;
@@ -131,7 +133,7 @@ function init() {
   initWireShaders();
   initEvents();
   calculateMatrix();
-  calculateCameraProjection();
+  calculateCameraProjection(near, far);
 
   draw();
 }
@@ -265,7 +267,7 @@ function calculateMatrix() {
 /**
  * Function to calculate the projection matrix. Arcball camera pointed at (0,0,0).
  */
-function calculateCameraProjection() {
+function calculateCameraProjection(near: number, far:number) {
   gl = gl as WebGLRenderingContext;
 
   let cameraPosition = [0, 0, cameraDistance];
@@ -291,7 +293,7 @@ function calculateCameraProjection() {
   // TODO : Change projection
   projectionMatrix = multiplyMatrix(
     getInverse(cameraMatrix),
-    getPerspectiveMatrix(60, 1, 1, 2000)
+    getPerspectiveMatrix(60, 1, near, far)
   );
 }
 
@@ -452,6 +454,12 @@ function initEvents() {
   cameraDistance = (document.getElementById(
     "camera-distance"
   ) as HTMLInputElement).valueAsNumber;
+  near = (document.getElementById(
+    "near"
+  ) as HTMLInputElement).valueAsNumber;
+  far = (document.getElementById(
+    "far"
+  ) as HTMLInputElement).valueAsNumber;
   
   (document.getElementById("toggle-shading") as HTMLInputElement).addEventListener(
     "click",
@@ -481,6 +489,24 @@ function initEvents() {
     (ev) => {
       type = 3;
       initModel();
+      draw();
+    }
+  );
+  (document.getElementById("near") as HTMLInputElement).addEventListener(
+    "input",
+    (ev) => {
+      near = (document.getElementById("near") as HTMLInputElement)
+        .valueAsNumber;
+      calculateCameraProjection(near, far);
+      draw();
+    }
+  );
+  (document.getElementById("far") as HTMLInputElement).addEventListener(
+    "input",
+    (ev) => {
+      far = (document.getElementById("far") as HTMLInputElement)
+        .valueAsNumber;
+      calculateCameraProjection(near, far);
       draw();
     }
   );
