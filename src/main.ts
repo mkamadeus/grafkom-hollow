@@ -23,6 +23,7 @@ import {
   getTranspose,
   getIdentityMatrix,
   getLookAt,
+  getObliqueMatrix,
 } from "./utils/Matrix4";
 
 import BodyVertexShader from "./shaders/BodyVertexShader.glsl";
@@ -83,6 +84,7 @@ let wireIndices = null;
 let matrix = Array(16).fill(0);
 let type = 1;
 let shadingMode = 1;
+let projMode = 3;
 let near = 1;
 let far = 50;
 
@@ -269,7 +271,6 @@ function calculateMatrix() {
  */
 function calculateCameraProjection(near: number, far:number) {
   gl = gl as WebGLRenderingContext;
-
   let cameraPosition = [0, 0, cameraDistance];
   const targetPosition = [0, 0, 0];
   const up = [0, 1, 0];
@@ -289,12 +290,30 @@ function calculateCameraProjection(near: number, far:number) {
   );
 
   cameraMatrix = getLookAt(cameraPosition, targetPosition, up);
-
-  // TODO : Change projection
-  projectionMatrix = multiplyMatrix(
-    getInverse(cameraMatrix),
-    getPerspectiveMatrix(60, 1, near, far)
-  );
+  if (projMode == 1)
+  {
+    // TODO : Change projection
+    projectionMatrix = multiplyMatrix(
+      getInverse(cameraMatrix),
+      getPerspectiveMatrix(60, 1, near, far)
+    );
+  }
+  else if (projMode == 2){
+    projectionMatrix = multiplyMatrix(
+      getInverse(cameraMatrix),
+      getOrthographicMatrix(-2.0, 2.0, -2.0, 2.0, 0.1, 100)
+      );
+  }
+  else if (projMode == 3){
+    var tempOrthoMatrix = multiplyMatrix(
+      getInverse(cameraMatrix),
+      getOrthographicMatrix(-2.0, 2.0, -2.0, 2.0, 0.1, 100)
+      );
+    projectionMatrix = multiplyMatrix(
+      getObliqueMatrix(15, 60),
+      tempOrthoMatrix
+    );
+  }
 }
 
 /**
@@ -492,12 +511,36 @@ function initEvents() {
       draw();
     }
   );
+  (document.getElementById("perspective") as HTMLInputElement).addEventListener(
+    "click",
+    (ev) => {
+      projMode = 1;
+      calculateCameraProjection(near, far);
+      draw();
+    }
+  );
+  (document.getElementById("orthographic") as HTMLInputElement).addEventListener(
+    "click",
+    (ev) => {
+      projMode = 2;
+      calculateCameraProjection(near, far);
+      draw();
+    }
+  );
+  (document.getElementById("oblique") as HTMLInputElement).addEventListener(
+    "click",
+    (ev) => {
+      projMode = 3;
+      calculateCameraProjection(near, far);
+      draw();
+    }
+  );
   (document.getElementById("near") as HTMLInputElement).addEventListener(
     "input",
     (ev) => {
       near = (document.getElementById("near") as HTMLInputElement)
         .valueAsNumber;
-      calculateCameraProjection(near, far);
+      calculateCameraProjection(near, far, projMode);
       draw();
     }
   );
@@ -506,7 +549,7 @@ function initEvents() {
     (ev) => {
       far = (document.getElementById("far") as HTMLInputElement)
         .valueAsNumber;
-      calculateCameraProjection(near, far);
+      calculateCameraProjection(near, far, projMode);
       draw();
     }
   );
@@ -597,7 +640,7 @@ function initEvents() {
     xRotationCamera = (document.getElementById(
       "x-camera-rotation"
     ) as HTMLInputElement).valueAsNumber;
-    calculateCameraProjection();
+    calculateCameraProjection(near, far, projMode);
     draw();
   });
   (document.getElementById(
@@ -606,7 +649,7 @@ function initEvents() {
     yRotationCamera = (document.getElementById(
       "y-camera-rotation"
     ) as HTMLInputElement).valueAsNumber;
-    calculateCameraProjection();
+    calculateCameraProjection(near, far, projMode);
     draw();
   });
   (document.getElementById(
@@ -615,7 +658,7 @@ function initEvents() {
     cameraDistance = (document.getElementById(
       "camera-distance"
     ) as HTMLInputElement).valueAsNumber;
-    calculateCameraProjection();
+    calculateCameraProjection(near, far, projMode);
     draw();
   });
 }

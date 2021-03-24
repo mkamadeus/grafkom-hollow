@@ -1,5 +1,9 @@
 import { crossVector, normalizeVector, subtractVector } from "./Vector3";
 
+export const degreesToRadians = (degree: number) => {
+  return degree * Math.PI / 180;
+}
+
 export const getIdentityMatrix = () => {
   const arr = Array(16).fill(0);
   for (let i = 0; i < 4; i++) arr[4 * i + i] = 1;
@@ -324,23 +328,55 @@ export const getOrthographicMatrix = (
   near: number,
   far: number
 ) => {
+  var a = right-left;
+  var b = top-bottom;
+  var c = far-near;
   return [
-    2 / (right - left),
+    2 / a,
     0,
     0,
     0,
     0,
-    2 / (top - bottom),
+    2 / b,
     0,
     0,
     0,
     0,
-    2 / (near - far),
+    -2 / c,
     0,
 
-    (left + right) / (left - right),
-    (bottom + top) / (bottom - top),
-    (near + far) / (near - far),
+    -(left + right) / a,
+    -(bottom + top) /b,
+    -(near + far) / c,
     1,
   ];
 };
+
+export const getObliqueMatrix = (
+  theta: number,
+  phi: number
+) => {
+  var t = degreesToRadians(theta);
+  var p = degreesToRadians(phi);
+  var cotT = -1/Math.tan(t);
+  var cotP = -1/Math.tan(p);
+  return getTranspose([
+    1,
+    0,
+    cotT,
+    0,
+    0,
+    1,
+    cotP,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1
+  ]);
+
+}
