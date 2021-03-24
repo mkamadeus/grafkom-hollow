@@ -15,13 +15,7 @@
         <div>
           <div class="flex items-center space-x-2 p-1">
             <label for="near">near</label>
-            <input
-              id="near"
-              type="range"
-              min="1"
-              max="50"
-              value="1"
-            />
+            <input id="near" type="range" min="1" max="50" value="1" />
           </div>
           <div class="flex items-center space-x-2 p-1">
             <label for="x-rotation">x-rotation</label>
@@ -51,13 +45,7 @@
         <div>
           <div class="flex items-center space-x-2 p-1">
             <label for="far">far</label>
-            <input
-              id="far"
-              type="range"
-              min="1"
-              max="50"
-              value="50"
-            />
+            <input id="far" type="range" min="1" max="50" value="50" />
           </div>
           <div class="flex items-center space-x-2 p-1">
             <label for="x-scale">x-scale</label>
@@ -179,18 +167,27 @@
           </button>
         </div>
         <div class="flex space-x-1 mx-2">
-          <button class="rounded py-1 px-2 text-white bg-pink-500" id="perspective">
+          <button
+            class="rounded py-1 px-2 text-white bg-pink-500"
+            id="perspective"
+          >
             Perspective
           </button>
           <button class="rounded py-1 px-2 text-white bg-pink-500" id="oblique">
             Oblique
           </button>
-          <button class="rounded py-1 px-2 text-white bg-pink-500" id ="orthographic">
+          <button
+            class="rounded py-1 px-2 text-white bg-pink-500"
+            id="orthographic"
+          >
             Orthographic
           </button>
         </div>
         <div class="flex space-x-1 mx-2">
-          <button class="rounded py-1 px-2 text-white bg-pink-500" id="toggle-shading">
+          <button
+            class="rounded py-1 px-2 text-white bg-pink-500"
+            id="toggle-shading"
+          >
             Toggle Shading
           </button>
         </div>
@@ -208,7 +205,20 @@
           class="shadow-lg bg-gray-800 rounded-xl"
         ></canvas>
       </div>
+
+      <div class="flex flex-col justify-center text-center p-6 text-pink-500">
+        <div class="font-bold mb-1">Help:</div>
+        <div class="mb-1">
+          Change slider value to tweak parameters relating to camera and object
+          orientation! Parameters name should be self-explanatory.
+        </div>
+        <div class="mb-1">
+          Buttons can be used for changing models, camera projection mode,
+          toggling shading, and resetting to default view.
+        </div>
+      </div>
     </div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

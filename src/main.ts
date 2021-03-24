@@ -1,5 +1,10 @@
 import "./styles/style.css";
-import { cubeColors, cubeIndices, cubePositions, cubeMaterial, } from "./models/cube";
+import {
+  cubeColors,
+  cubeIndices,
+  cubePositions,
+  cubeMaterial,
+} from "./models/cube";
 import {
   tetrahedronColors,
   tetrahedronIndices,
@@ -33,22 +38,25 @@ import WireFragmentShader from "./shaders/WireFragmentShader.glsl";
 import { subtractVector, addVector, transformVector } from "./utils/Vector3";
 
 let models = {
-  1: { positions: trianglePositions,
+  1: {
+    positions: trianglePositions,
     indices: triangleIndices,
     colors: triangleColors,
     material: triangleMaterial,
   },
-  2: { positions: cubePositions,
+  2: {
+    positions: cubePositions,
     indices: cubeIndices,
     colors: cubeColors,
     material: cubeMaterial,
   },
-  3: { positions: tetrahedronPositions,
+  3: {
+    positions: tetrahedronPositions,
     indices: tetrahedronIndices,
     colors: tetrahedronColors,
     material: tetrahedronMaterial,
   },
-}
+};
 
 let gl: WebGLRenderingContext | null = null;
 let programObject: WebGLProgram | null = null;
@@ -82,7 +90,7 @@ let shadingModeLocation: WebGLUniformLocation | null = null;
 
 let wireIndices = null;
 let matrix = Array(16).fill(0);
-let type = 1;
+let type: 1 | 2 | 3 = 1;
 let shadingMode = 1;
 let projMode = 1;
 let near = 1;
@@ -153,7 +161,9 @@ function initModel() {
 
   gl.bufferData(
     gl.ARRAY_BUFFER,
-    models[type].positions.byteLength + cubeNormal.byteLength + models[type].colors.byteLength,
+    models[type].positions.byteLength +
+      cubeNormal.byteLength +
+      models[type].colors.byteLength,
     gl.STATIC_DRAW
   );
   normalOffset = models[type].positions.byteLength;
@@ -269,7 +279,7 @@ function calculateMatrix() {
 /**
  * Function to calculate the projection matrix. Arcball camera pointed at (0,0,0).
  */
-function calculateCameraProjection(near: number, far:number) {
+function calculateCameraProjection(near: number, far: number) {
   gl = gl as WebGLRenderingContext;
   let cameraPosition = [0, 0, cameraDistance];
   const targetPosition = [0, 0, 0];
@@ -290,25 +300,22 @@ function calculateCameraProjection(near: number, far:number) {
   );
 
   cameraMatrix = getLookAt(cameraPosition, targetPosition, up);
-  if (projMode == 1)
-  {
+  if (projMode == 1) {
     // TODO : Change projection
     projectionMatrix = multiplyMatrix(
       getInverse(cameraMatrix),
       getPerspectiveMatrix(60, 1, near, far)
     );
-  }
-  else if (projMode == 2){
+  } else if (projMode == 2) {
     projectionMatrix = multiplyMatrix(
       getInverse(cameraMatrix),
       getOrthographicMatrix(-2.0, 2.0, -2.0, 2.0, 0.1, 100)
-      );
-  }
-  else if (projMode == 3){
+    );
+  } else if (projMode == 3) {
     var tempOrthoMatrix = multiplyMatrix(
       getInverse(cameraMatrix),
       getOrthographicMatrix(-2.0, 2.0, -2.0, 2.0, 0.1, 100)
-      );
+    );
     projectionMatrix = multiplyMatrix(
       getObliqueMatrix(45, 45),
       tempOrthoMatrix
@@ -391,7 +398,7 @@ function draw() {
   gl.uniform1f(ka, 1);
   gl.uniform1f(kd, 1);
   gl.uniform1f(ks, 1);
-  
+
   gl.uniform1f(shineVal, models[type].material.shininess);
   gl.uniform3fv(ac, new Float32Array(models[type].material.ambient));
   gl.uniform3fv(dc, new Float32Array(models[type].material.diffuse));
@@ -473,43 +480,48 @@ function initEvents() {
   cameraDistance = (document.getElementById(
     "camera-distance"
   ) as HTMLInputElement).valueAsNumber;
-  near = (document.getElementById(
-    "near"
-  ) as HTMLInputElement).valueAsNumber;
-  far = (document.getElementById(
-    "far"
-  ) as HTMLInputElement).valueAsNumber;
-  
+  near = (document.getElementById("near") as HTMLInputElement).valueAsNumber;
+  far = (document.getElementById("far") as HTMLInputElement).valueAsNumber;
+
   (document.getElementById("reset") as HTMLInputElement).addEventListener(
     "click",
     (ev) => {
       xRotation = 0;
-      (document.getElementById("x-rotation") as HTMLInputElement)
-        .valueAsNumber = 0;
+      (document.getElementById(
+        "x-rotation"
+      ) as HTMLInputElement).valueAsNumber = 0;
       yRotation = 0;
-      (document.getElementById("y-rotation") as HTMLInputElement)
-        .valueAsNumber = 0;
+      (document.getElementById(
+        "y-rotation"
+      ) as HTMLInputElement).valueAsNumber = 0;
       zRotation = 0;
-      (document.getElementById("z-rotation") as HTMLInputElement)
-        .valueAsNumber = 0;
+      (document.getElementById(
+        "z-rotation"
+      ) as HTMLInputElement).valueAsNumber = 0;
       xScale = 1;
-      (document.getElementById("x-scale") as HTMLInputElement)
-        .valueAsNumber = 1;
+      (document.getElementById(
+        "x-scale"
+      ) as HTMLInputElement).valueAsNumber = 1;
       yScale = 1;
-      (document.getElementById("y-scale") as HTMLInputElement)
-        .valueAsNumber = 1;
+      (document.getElementById(
+        "y-scale"
+      ) as HTMLInputElement).valueAsNumber = 1;
       zScale = 1;
-      (document.getElementById("z-scale") as HTMLInputElement)
-        .valueAsNumber = 1;
+      (document.getElementById(
+        "z-scale"
+      ) as HTMLInputElement).valueAsNumber = 1;
       xTranslation = 0;
-      (document.getElementById("x-translation") as HTMLInputElement)
-        .valueAsNumber = 0;
+      (document.getElementById(
+        "x-translation"
+      ) as HTMLInputElement).valueAsNumber = 0;
       yTranslation = 0;
-      (document.getElementById("y-translation") as HTMLInputElement)
-        .valueAsNumber = 0;
+      (document.getElementById(
+        "y-translation"
+      ) as HTMLInputElement).valueAsNumber = 0;
       zTranslation = 0;
-      (document.getElementById("z-translation") as HTMLInputElement)
-        .valueAsNumber = 0;
+      (document.getElementById(
+        "z-translation"
+      ) as HTMLInputElement).valueAsNumber = 0;
       xRotationCamera = 0;
       (document.getElementById(
         "x-camera-rotation"
@@ -523,25 +535,20 @@ function initEvents() {
         "camera-distance"
       ) as HTMLInputElement).valueAsNumber = 2;
       near = 1;
-      (document.getElementById(
-        "near" 
-      ) as HTMLInputElement).valueAsNumber = 1;
+      (document.getElementById("near") as HTMLInputElement).valueAsNumber = 1;
       far = 50;
-      (document.getElementById(
-        "far"
-      ) as HTMLInputElement).valueAsNumber = 50;
+      (document.getElementById("far") as HTMLInputElement).valueAsNumber = 50;
       calculateMatrix();
       calculateCameraProjection(near, far);
       draw();
     }
   );
-  (document.getElementById("toggle-shading") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      shadingMode = (shadingMode == 0) ? 1 : 0;
-      draw();
-    }
-  );
+  (document.getElementById(
+    "toggle-shading"
+  ) as HTMLInputElement).addEventListener("click", (ev) => {
+    shadingMode = shadingMode == 0 ? 1 : 0;
+    draw();
+  });
   (document.getElementById("model1") as HTMLInputElement).addEventListener(
     "click",
     (ev) => {
@@ -574,14 +581,13 @@ function initEvents() {
       draw();
     }
   );
-  (document.getElementById("orthographic") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      projMode = 2;
-      calculateCameraProjection(near, far);
-      draw();
-    }
-  );
+  (document.getElementById(
+    "orthographic"
+  ) as HTMLInputElement).addEventListener("click", (ev) => {
+    projMode = 2;
+    calculateCameraProjection(near, far);
+    draw();
+  });
   (document.getElementById("oblique") as HTMLInputElement).addEventListener(
     "click",
     (ev) => {
@@ -595,16 +601,15 @@ function initEvents() {
     (ev) => {
       near = (document.getElementById("near") as HTMLInputElement)
         .valueAsNumber;
-      calculateCameraProjection(near, far, projMode);
+      calculateCameraProjection(near, far);
       draw();
     }
   );
   (document.getElementById("far") as HTMLInputElement).addEventListener(
     "input",
     (ev) => {
-      far = (document.getElementById("far") as HTMLInputElement)
-        .valueAsNumber;
-      calculateCameraProjection(near, far, projMode);
+      far = (document.getElementById("far") as HTMLInputElement).valueAsNumber;
+      calculateCameraProjection(near, far);
       draw();
     }
   );
