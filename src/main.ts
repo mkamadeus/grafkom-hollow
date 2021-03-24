@@ -265,15 +265,11 @@ function initWireShaders() {
  * Function to calculate current transformation matrix.
  */
 function calculateMatrix() {
-  matrix = getScaleMatrix(xScale, yScale, zScale);
-  matrix = multiplyMatrix(
-    getRotationMatrix(xRotation, yRotation, zRotation),
-    matrix
-  );
-  matrix = multiplyMatrix(
-    getTranslationMatrix(xTranslation, yTranslation, zTranslation),
-    matrix
-  );
+  let rotate = getRotationMatrix(xRotation, yRotation, zRotation);
+  let translate = getTranslationMatrix(xTranslation, yTranslation, zTranslation);
+  let scale = getScaleMatrix(xScale, yScale, zScale);
+  matrix = multiplyMatrix(rotate, translate);
+  matrix = multiplyMatrix(matrix, scale);
 }
 
 /**
