@@ -310,7 +310,7 @@ function calculateCameraProjection(near: number, far:number) {
       getOrthographicMatrix(-2.0, 2.0, -2.0, 2.0, 0.1, 100)
       );
     projectionMatrix = multiplyMatrix(
-      getObliqueMatrix(15, 60),
+      getObliqueMatrix(45, 45),
       tempOrthoMatrix
     );
   }
