@@ -84,7 +84,7 @@ let wireIndices = null;
 let matrix = Array(16).fill(0);
 let type = 1;
 let shadingMode = 1;
-let projMode = 3;
+let projMode = 1;
 let near = 1;
 let far = 50;
 
@@ -480,6 +480,61 @@ function initEvents() {
     "far"
   ) as HTMLInputElement).valueAsNumber;
   
+  (document.getElementById("reset") as HTMLInputElement).addEventListener(
+    "click",
+    (ev) => {
+      xRotation = 0;
+      (document.getElementById("x-rotation") as HTMLInputElement)
+        .valueAsNumber = 0;
+      yRotation = 0;
+      (document.getElementById("y-rotation") as HTMLInputElement)
+        .valueAsNumber = 0;
+      zRotation = 0;
+      (document.getElementById("z-rotation") as HTMLInputElement)
+        .valueAsNumber = 0;
+      xScale = 1;
+      (document.getElementById("x-scale") as HTMLInputElement)
+        .valueAsNumber = 1;
+      yScale = 1;
+      (document.getElementById("y-scale") as HTMLInputElement)
+        .valueAsNumber = 1;
+      zScale = 1;
+      (document.getElementById("z-scale") as HTMLInputElement)
+        .valueAsNumber = 1;
+      xTranslation = 0;
+      (document.getElementById("x-translation") as HTMLInputElement)
+        .valueAsNumber = 0;
+      yTranslation = 0;
+      (document.getElementById("y-translation") as HTMLInputElement)
+        .valueAsNumber = 0;
+      zTranslation = 0;
+      (document.getElementById("z-translation") as HTMLInputElement)
+        .valueAsNumber = 0;
+      xRotationCamera = 0;
+      (document.getElementById(
+        "x-camera-rotation"
+      ) as HTMLInputElement).valueAsNumber = 0;
+      yRotationCamera = 0;
+      (document.getElementById(
+        "y-camera-rotation"
+      ) as HTMLInputElement).valueAsNumber = 0;
+      cameraDistance = 2;
+      (document.getElementById(
+        "camera-distance"
+      ) as HTMLInputElement).valueAsNumber = 2;
+      near = 1;
+      (document.getElementById(
+        "near" 
+      ) as HTMLInputElement).valueAsNumber = 1;
+      far = 50;
+      (document.getElementById(
+        "far"
+      ) as HTMLInputElement).valueAsNumber = 50;
+      calculateMatrix();
+      calculateCameraProjection(near, far);
+      draw();
+    }
+  );
   (document.getElementById("toggle-shading") as HTMLInputElement).addEventListener(
     "click",
     (ev) => {
